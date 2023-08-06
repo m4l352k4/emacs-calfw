@@ -1,4 +1,4 @@
-;;; calfw.el --- Calendar view framework on Emacs
+;;; calfw.el --- Calendar view framework on Emacs -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2011,2012,2013,2014,2015  SAKURAI Masashi
 
@@ -1855,6 +1855,9 @@ where `event-fun' is applied if the element is a `cfw:event'."
           (return (reverse day-names)))
         (setq day (% (1+ day) cfw:week-days))
         (setq i (cfw:date-after i 1))))
+
+(defvar displayed-month)  ; because these variables are binded dynamically
+(defvar displayed-year)
 
 (defun cfw:view-model-make-holidays (date)
   "[internal] Return an alist of holidays around DATE."
