@@ -465,17 +465,18 @@ TEXT1 < TEXT2. This function makes no-time items in front of timed-items."
 (defun cfw:open-org-calendar ()
   "Open an org schedule calendar in the new buffer."
   (interactive)
-  (save-excursion
-    (let* ((source1 (cfw:org-create-source))
-           (curr-keymap (if cfw:org-overwrite-default-keybinding cfw:org-custom-map cfw:org-schedule-map))
-           (cp (cfw:create-calendar-component-buffer
-                :view 'month
-                :contents-sources (list source1)
-                :custom-map curr-keymap
-                :sorter 'cfw:org-schedule-sorter)))
-      (switch-to-buffer (cfw:cp-get-buffer cp))
-      (when (not org-todo-keywords-for-agenda)
-        (message "Warn : open org-agenda buffer first.")))))
+  (let (cp)
+    (save-excursion
+      (let* ((source1 (cfw:org-create-source))
+             (curr-keymap (if cfw:org-overwrite-default-keybinding cfw:org-custom-map cfw:org-schedule-map)))
+        (setq cp (cfw:create-calendar-component-buffer
+                  :view 'month
+                  :contents-sources (list source1)
+                  :custom-map curr-keymap
+                  :sorter 'cfw:org-schedule-sorter))))
+    (switch-to-buffer (cfw:cp-get-buffer cp))
+    (when (not org-todo-keywords-for-agenda)
+      (message "Warn : open org-agenda buffer first."))))
 
 (defun cfw:org-from-calendar ()
   "Do something. This command should be executed on the calfw calendar."
