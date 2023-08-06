@@ -1041,7 +1041,7 @@ VIEW is a symbol of the view type."
   (cl-loop for f in (cfw:component-click-hooks component)
         do (condition-case err
                (funcall f)
-             (nil (message "Calfw: Click / Hook error %S [%s]" f err)))))
+             (message "Calfw: Click / Hook error %S [%s]" f err))))
 
 (defun cfw:cp-fire-selection-change-hooks (component)
   "[internal] Call selection change hook functions of the component with no
@@ -1049,14 +1049,14 @@ arguments."
   (cl-loop for f in (cfw:component-selection-change-hooks component)
         do (condition-case err
                (funcall f)
-             (nil (message "Calfw: Selection change / Hook error %S [%s]" f err)))))
+             (message "Calfw: Selection change / Hook error %S [%s]" f err))))
 
 (defun cfw:cp-fire-update-hooks (component)
   "[internal] Call update hook functions of the component with no arguments."
   (cl-loop for f in (cfw:component-update-hooks component)
         do (condition-case err
                (funcall f)
-             (nil (message "Calfw: Update / Hook error %S [%s]" f err)))))
+             (message "Calfw: Update / Hook error %S [%s]" f err))))
 
 
 
