@@ -392,7 +392,7 @@ KEYMAP-LIST is a source list like ((key . command) ... )."
        (list month day year)))
 
 (defun cfw:time (hours minutes)
-  "Construct a date object in the calendar format."
+  "Construct a time object (local time) in the calendar format."
   (and hours minutes
        (list hours minutes)))
 
@@ -418,7 +418,8 @@ ones of DATE2. Otherwise is `nil'."
       (calendar-extract-year date2))))
 
 (defun cfw:date-less-equal-p (d1 d2)
-  "Return `t' if date value D1 is less than or equals to date value D2."
+  "Return `t' if date value D1 is less than or equals to date value D2, i.e.
+(D1 <= D2 ? t : nil)."
   (let ((ed1 (cfw:calendar-to-emacs d1))
         (ed2 (cfw:calendar-to-emacs d2)))
     (or (equal ed1 ed2)
@@ -914,7 +915,8 @@ found at the variable, return nil."
   (cfw:dest-buffer (cfw:component-dest component)))
 
 (defun cfw:cp-displayed-date-p (component date)
-  "If the date is displayed in the current view, return `t'. Otherwise return `nil'."
+  "If the date is displayed in the current view, return `t'.
+Otherwise return `nil'."
   (let* ((model (cfw:component-model component))
          (begin (cfw:k 'begin-date model))
          (end (cfw:k 'end-date model)))
@@ -1042,7 +1044,8 @@ VIEW is a symbol of the view type."
              (nil (message "Calfw: Click / Hook error %S [%s]" f err)))))
 
 (defun cfw:cp-fire-selection-change-hooks (component)
-  "[internal] Call selection change hook functions of the component with no arguments."
+  "[internal] Call selection change hook functions of the component with no
+arguments."
   (loop for f in (cfw:component-selection-change-hooks component)
         do (condition-case err
                (funcall f)
@@ -1062,8 +1065,8 @@ VIEW is a symbol of the view type."
 (defun cfw:model-abstract-new (date contents-sources annotation-sources &optional sorter)
   "Return an abstract model object.
 DATE is initial date for the calculation of the start date and end one.
-CONTENTS-SOURCES is a list of contents functions.
-ANNOTATION-SOURCES is a list of annotation functions."
+CONTENTS-SOURCES is a list of contents functions. ANNOTATION-SOURCES is a list
+of annotation functions."
   (unless date (setq date (calendar-current-date)))
   `((init-date . ,date)
     (contents-sources . ,contents-sources)
@@ -1071,7 +1074,7 @@ ANNOTATION-SOURCES is a list of annotation functions."
     (sorter . ,(or sorter cfw:default-text-sorter))))
 
 (defun cfw:model-abstract-derived (date org-model)
-  "Return an abstract model object. The contents functions and annotation ones are copied from ORG-MODEL.
+  "Return an abstract model object with functions copied from ORG-MODEL.
 DATE is initial date for the calculation of the start date and end one.
 ORG-MODEL is a model object to inherit."
   (cfw:model-abstract-new
@@ -1081,7 +1084,7 @@ ORG-MODEL is a model object to inherit."
    (cfw:model-get-sorter org-model)))
 
 (defun cfw:model-create-updated-view-data (model view-data)
-  "[internal] Clear previous view model data from MODEL and return a new model with VIEW-DATA."
+  "[internal] Clear old data from MODEL and return a new model with VIEW-DATA."
   (append
    (cfw:model-abstract-derived
     (cfw:k 'init-date model) model)
@@ -1407,7 +1410,8 @@ faces, the faces are remained."
    (t default-face)))
 
 (defun cfw:render-truncate (org limit-width &optional ellipsis)
-  "[internal] Truncate a string ORG with LIMIT-WIDTH, like `truncate-string-to-width'."
+  "[internal] Truncate a string ORG with LIMIT-WIDTH.
+Truncates as in `truncate-string-to-width'."
   (setq org (replace-regexp-in-string "\n" " " org))
   (if (< limit-width (string-width org))
       (let ((str (truncate-string-to-width
@@ -1456,9 +1460,11 @@ function called by clicking.  If STATE is non-nil, the face
 
 (defun cfw:render-toolbar (width current-view prev-cmd next-cmd)
   "[internal] Return a text of the toolbar.
-WIDTH is width of the toolbar.
-CURRENT-VIEW is a symbol of the current view type. This symbol is used to select the button faces on the toolbar.
-PREV-CMD and NEXT-CMD are the moving view command, such as `cfw:navi-previous(next)-month-command' and `cfw:navi-previous(next)-week-command'."
+WIDTH is width of the toolbar. CURRENT-VIEW is a symbol of the current view
+type. This symbol is used to select the button faces on the toolbar. PREV-CMD
+and NEXT-CMD are the moving view command, such as
+`cfw:navi-previous(next)-month-command' and
+`cfw:navi-previous(next)-week-command'."
   (let* ((prev (cfw:render-button " < " prev-cmd))
          (today (cfw:render-button "Today" 'cfw:navi-goto-today-command))
          (next (cfw:render-button " > " next-cmd))
@@ -1589,8 +1595,9 @@ period-stack -> ((row-num . period) ... )"
     periods-each-days))
 
 (defun cfw:render-columns (day-columns param)
-  "[internal] This function concatenates each rows on the days into a string of a physical line.
-DAY-COLUMNS is a list of columns. A column is a list of following form: (DATE (DAY-TITLE . ANNOTATION-TITLE) STRING STRING...)."
+  "[internal] For each row, concatenates columns into a string, physical line.
+DAY-COLUMNS is a list of columns. A column is a list of following
+form: (DATE (DAY-TITLE . ANNOTATION-TITLE) STRING STRING...)."
   (let ((cell-width  (cfw:k 'cell-width  param))
         (cell-height (cfw:k 'cell-height param))
         (EOL (cfw:k 'eol param)) (VL (cfw:k 'vl param))
@@ -1634,9 +1641,11 @@ DAY-COLUMNS is a list of columns. A column is a list of following form: (DATE (D
 Calfw has 3 strategies: none, simple and wordwrap.
 `cfw:render-line-breaker-none' never breaks lines.
 `cfw:render-line-breaker-simple' breaks lines with rigid width (default).
-`cfw:render-line-breaker-wordwrap' breaks lines with the emacs function `fill-region'.
+`cfw:render-line-breaker-wordwrap' breaks lines with the emacs function
+`fill-region'.
 
-The arguments of a line-breaking function are STRING, LINE-WIDTH and MAX-LINE-NUMBER.")
+The arguments of a line-breaking function are STRING, LINE-WIDTH and
+MAX-LINE-NUMBER.")
 
 (defun cfw:render-break-lines (lines cell-width cell-height)
   "[internal] Return lines those are split into some lines by the
@@ -2803,14 +2812,14 @@ initially.  This function uses the function
   (&key date buffer custom-map contents-sources annotation-sources view sorter)
   "Return a calendar buffer with some customize parameters.
 
-This function binds the component object at the
-buffer local variable `cfw:component'.
+This function binds the component object at the buffer local variable
+`cfw:component'.
 
-The size of calendar is calculated from the window that shows
-BUFFER or the selected window.
-DATE is initial focus date. If it is nil, today is selected initially.
-BUFFER is the buffer to be rendered. If BUFFER is nil, this function creates a new buffer named `cfw:calendar-buffer-name'.
-CUSTOM-MAP is the additional keymap that is added to default keymap `cfw:calendar-mode-map'."
+The size of calendar is calculated from the window that shows BUFFER or the
+selected window. DATE is initial focus date. If it is nil, today is selected
+initially. BUFFER is the buffer to be rendered. If BUFFER is nil, this function
+creates a new buffer named `cfw:calendar-buffer-name'. CUSTOM-MAP is the
+additional keymap that is added to default keymap `cfw:calendar-mode-map'."
   (let* ((dest  (cfw:dest-init-buffer buffer nil nil custom-map))
          (model (cfw:model-abstract-new date contents-sources annotation-sources sorter))
          (cp (cfw:cp-new dest model view date)))
@@ -2822,13 +2831,15 @@ CUSTOM-MAP is the additional keymap that is added to default keymap `cfw:calenda
 
 (defun* cfw:create-calendar-component-region
   (&key date width height keymap contents-sources annotation-sources view sorter)
-  "Insert markers of the rendering destination at current point and display the calendar view.
+  "Insert rendering markers at current point and display the calendar view.
 
-This function returns a component object and stores it at the text property `cfw:component'.
+This function returns a component object and stores it at the text property
+`cfw:component'.
 
-DATE is initial focus date. If it is nil, today is selected initially.
-WIDTH and HEIGHT are reference size of the calendar view. If those are nil, the size is calculated from the selected window.
-KEYMAP is the keymap that is put to the text property `keymap'. If KEYMAP is nil, `cfw:calendar-mode-map' is used."
+DATE is initial focus date. If it is nil, today is selected initially. WIDTH and
+HEIGHT are reference size of the calendar view. If those are nil, the size is
+calculated from the selected window. KEYMAP is the keymap that is put to the
+text property `keymap'. If KEYMAP is nil, `cfw:calendar-mode-map' is used."
   (let (mark-begin mark-end)
     (setq mark-begin (point-marker))
     (insert " ")
