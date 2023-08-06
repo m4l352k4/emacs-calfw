@@ -114,7 +114,7 @@ For example,
     (beg    (get-text-property (point) 'cfw:org-h-beg))
     (loc    (get-text-property (point) 'cfw:org-loc)))
     (when link
-      (org-open-link-from-string link))
+      (org-link-open-from-string link))
     (when (and marker (marker-buffer marker))
       (org-mark-ring-push)
       (switch-to-buffer (marker-buffer marker))
@@ -189,9 +189,9 @@ For example,
     ;;; act for org link
     ;;; ------------------------------------------------------------------------
     (setq text (replace-regexp-in-string "%[0-9A-F]\\{2\\}" " " text))
-    (if (string-match org-bracket-link-regexp text)
-      (let* ((desc (if (match-end 3) (org-match-string-no-properties 3 text)))
-             (link (org-link-unescape (org-match-string-no-properties 1 text)))
+    (if (string-match org-link-bracket-re text)
+      (let* ((desc (if (match-end 3) (match-string-no-properties 3 text)))
+             (link (org-link-unescape (match-string-no-properties 1 text)))
              (help (concat "LINK: " link))
              (link-props (list
                           'face 'org-link
@@ -216,8 +216,9 @@ For example,
      'display nil)))
 
 (defvar cfw:org-schedule-summary-transformer 'cfw:org-summary-format
-  "Transformation function which transforms the org item string to calendar title.
-If this function splits into a list of string, the calfw displays those string in multi-lines.")
+  "Function transforming the org item string to calendar title.
+If this function splits into a list of string, the calfw displays those string
+in multi-lines.")
 
 (defun cfw:org-normalize-date (date)
   "Return a normalized date. (MM DD YYYY)."
