@@ -1517,20 +1517,20 @@ and NEXT-CMD are the moving view command, such as
 
         for beginp = (equal date begin)
         for endp   = (equal date end)
-        for width  = (- cell-width (if beginp 1 0) (if endp 1 0))
+        for inwidth  = (- cell-width (if beginp 1 0) (if endp 1 0))
         for title  = (cfw:render-periods-title
-                      date week-day begin end content cell-width)
+                      date week-day begin end content cell-width inwidth)
         collect
         (apply 'propertize
                (concat (when beginp cfw:fstring-period-start)
-                       (cfw:render-left width title ?-)
+                       (cfw:render-left inwidth title ?-)
                        (when endp cfw:fstring-period-end))
                'face (cfw:render-get-face-period content 'cfw:face-periods)
                'font-lock-face (cfw:render-get-face-period content 'cfw:face-periods)
                'cfw:period t
                props)))
 
-(defun cfw:render-periods-title (date week-day begin end content cell-width)
+(defun cfw:render-periods-title (date week-day begin end content cell-width inwidth)
   "[internal] Return a title string."
   (let* ((week-begin (cfw:date-after date (- week-day)))
          (month-begin (cfw:date
@@ -1551,7 +1551,7 @@ and NEXT-CMD are the moving view command, such as
             do
             (setq title (substring title (length del)))
             finally return
-            (cfw:render-truncate title width (equal end date))))))
+            (cfw:render-truncate title inwidth (equal end date))))))
 
 ;; event periods shifts pos - not one line
 (defun cfw:render-periods-get-min (periods-each-days begin end)
