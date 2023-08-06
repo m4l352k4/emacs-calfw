@@ -358,15 +358,15 @@ for example `cfw:read-date-command-simple' or `cfw:org-read-date-command'."
 (defun cfw:define-keymap (keymap-list)
   "[internal] Key map definition utility.
 KEYMAP-LIST is a source list like ((key . command) ... )."
-  (let ((map (make-sparse-keymap)))
+  (let ((new-key-map (make-sparse-keymap)))
     (mapc
      (lambda (i)
-       (define-key map
+       (define-key new-key-map
          (if (stringp (car i))
              (read-kbd-macro (car i)) (car i))
          (cdr i)))
      keymap-list)
-    map))
+    new-key-map))
 
 (defun cfw:trim (str)
   "[internal] Trim the space char-actors."
@@ -2498,9 +2498,9 @@ calendar view."
   (interactive)
   (let ((cp (cfw:cp-get-component))
         (date (cfw:cursor-to-date))
-        (count (or (get-text-property (point) 'cfw:row-count) -1)))
+        (rcount (or (get-text-property (point) 'cfw:row-count) -1)))
     (when (and cp date)
-      (let ((next (cfw:find-item (cfw:component-dest cp) date (1+ count))))
+      (let ((next (cfw:find-item (cfw:component-dest cp) date (1+ rcount))))
         (if next (goto-char next)
           (cfw:navi-goto-date date))))))
 
@@ -2509,9 +2509,9 @@ calendar view."
   (interactive)
   (let ((cp (cfw:cp-get-component))
         (date (cfw:cursor-to-date))
-        (count (or (get-text-property (point) 'cfw:row-count) -1)))
+        (rcount (or (get-text-property (point) 'cfw:row-count) -1)))
     (when (and cp date)
-      (let ((next (cfw:find-item (cfw:component-dest cp) date (1- count))))
+      (let ((next (cfw:find-item (cfw:component-dest cp) date (1- rcount))))
         (if next (goto-char next)
           (cfw:navi-goto-date date))))))
 
@@ -2767,27 +2767,27 @@ DATE is a date to show. MODEL is model object."
 
 (defun cfw:details-navi-next-item-command ()
   (interactive)
-  (let* ((count (or (get-text-property (point) 'cfw:row-count) -1))
-         (next (cfw:details-find-item (1+ count))))
-    (goto-char (or next (point-min)))))
+  (let* ((rcount (or (get-text-property (point) 'cfw:row-count) -1))
+         (next-pos (cfw:details-find-item (1+ rcount))))
+    (goto-char (or next-pos (point-min)))))
 
 (defun cfw:details-navi-prev-item-command ()
   (interactive)
-  (let* ((count (or (get-text-property (point) 'cfw:row-count) -1))
-         (next (cfw:details-find-item (1- count))))
-    (goto-char (or next (point-min)))))
+  (let* ((rcount (or (get-text-property (point) 'cfw:row-count) -1))
+         (next-pos (cfw:details-find-item (1- rcount))))
+    (goto-char (or next-pos (point-min)))))
 
 (defun cfw:details-find-item (row-count)
   "[internal] Find the schedule item which has the text
 properties as `cfw:row-count' = ROW-COUNT. If no item is found,
 this function returns nil."
   (loop with pos = (point-min)
-        for next = (next-single-property-change pos 'cfw:row-count)
-        for text-row-count = (and next (get-text-property next 'cfw:row-count))
-        while next do
+        for next-pos = (next-single-property-change pos 'cfw:row-count)
+        for text-row-count = (and next-pos (get-text-property next-pos 'cfw:row-count))
+        while next-pos do
         (when (eql row-count text-row-count)
-          (return next))
-        (setq pos next)))
+          (return next-pos))
+        (setq pos next-pos)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; High level API
@@ -3010,5 +3010,5 @@ And here.")
 (provide 'calfw)
 ;;; calfw.el ends here
 
-;; (progn (eval-current-buffer) (cfw:open-debug-calendar))
-;; (progn (eval-current-buffer) (cfw:open-calendar-buffer))
+;; (progn (eval-buffer) (cfw:open-debug-calendar))
+;; (progn (eval-buffer) (cfw:open-calendar-buffer))
