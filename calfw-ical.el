@@ -38,6 +38,8 @@
 (require 'calfw)
 (require 'icalendar)
 (require 'url)
+(require 'url-http)
+
 
 (defun cfw:decode-to-calendar (dec)
   (cfw:date
@@ -45,7 +47,7 @@
 
 (defun cfw:ical-event-get-dates (event)
   "Return date-time information from iCalendar event object:
-period event (list 'period start-date end-date), time span
+period EVENT (list 'period start-date end-date), time span
 event (list 'time date start-time end-time).  The period includes
 end-date.  This function is copied from
 `icalendar--convert-ical-to-diary' and modified.  Recursive
@@ -116,7 +118,7 @@ events have not been supported yet."
                               (replace-regexp-in-string "\\\\," "," string))))
 
 (defun cfw:ical-convert-event (event)
-  (destructuring-bind (dtag date start end) (cfw:ical-event-get-dates event)
+  (cl-destructuring-bind (dtag date start end) (cfw:ical-event-get-dates event)
     (make-cfw:event
      :start-date  date
      :start-time  start
@@ -130,7 +132,7 @@ events have not been supported yet."
                    (icalendar--get-event-property event 'DESCRIPTION)))))
 
 (defun cfw:ical-convert-ical-to-calfw (ical-list)
-  (loop with zone-map = (icalendar--convert-all-timezones ical-list)
+  (cl-loop with zone-map = (icalendar--convert-all-timezones ical-list)
         for e in (icalendar--all-events ical-list)
         for event = (cfw:ical-convert-event e)
         if event
@@ -171,7 +173,7 @@ events have not been supported yet."
     buf))
 
 (defun cfw:ical-url-to-buffer-internal (url)
-  "Retrieve ICS file with the url package."
+  "Retrieve ICS file with the URL package."
   (let ((buf (url-retrieve-synchronously url))
         (dbuf (get-buffer-create cfw:ical-calendar-tmpbuf))
         pos)
@@ -188,12 +190,13 @@ events have not been supported yet."
     dbuf))
 
 (defun cfw:ical-url-to-buffer (url)
+  "Ical to buffer fro URL."
   (let* ((url-code (url-generic-parse-url url))
          (type (url-type url-code)))
     (cond
      (type
       (funcall cfw:ical-url-to-buffer-get url))
-     (t ; assume local file
+     (t					; assume local file
       (let ((buf (find-file-noselect (expand-file-name url) t)))
         (with-current-buffer buf (set-visited-file-name nil))
         buf)))))
@@ -219,11 +222,12 @@ events have not been supported yet."
       (replace-match "DT\\1:")))
   (set-buffer-modified-p nil))
 
-(defvar cfw:ical-data-cache nil "a list of (url . ics-data)")
+(defvar cfw:ical-data-cache nil
+  "A list of (url . ics-data).")
 
 (defun cfw:ical-data-cache-clear (url)
   (setq cfw:ical-data-cache
-        (loop for i in cfw:ical-data-cache
+        (cl-loop for i in cfw:ical-data-cache
               for (u . d) = i
               unless (equal u url)
               collect i)))
@@ -245,13 +249,13 @@ events have not been supported yet."
     (cdr data)))
 
 (defun cfw:ical-to-calendar (url begin end)
-  (loop for event in (cfw:ical-get-data url)
+  (cl-loop for event in (cfw:ical-get-data url)
         if (and (listp event)
                 (equal 'periods (car event)))
         collect
         (cons
          'periods
-         (loop for evt in (cadr event)
+         (cl-loop for evt in (cadr event)
                if (and
                    (cfw:date-less-equal-p begin (cfw:event-end-date evt))
                    (cfw:date-less-equal-p (cfw:event-start-date evt) end))
@@ -260,7 +264,7 @@ events have not been supported yet."
         collect event))
 
 (defun cfw:ical-create-source (name url color)
-  (lexical-let ((url url))
+  (let ((url url))
     (make-cfw:source
      :name (concat "iCal:" name)
      :color color
@@ -269,8 +273,8 @@ events have not been supported yet."
              (cfw:ical-to-calendar url begin end)))))
 
 (defun cfw:open-ical-calendar (url)
-  "Simple calendar interface. This command displays just one
-calendar source."
+  "Simple calendar interface.
+This command displays just one calendar source from URL."
   (interactive)
   (save-excursion
     (let ((cp (cfw:create-calendar-component-buffer
